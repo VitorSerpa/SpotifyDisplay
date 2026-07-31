@@ -1,6 +1,7 @@
 import axios from "axios";
 
 let accessToken = "";
+let refreshToken = "";
 
 const callback = async (req, res) => {
     const { code } = req.query;
@@ -17,8 +18,7 @@ const callback = async (req, res) => {
                 code,
                 redirect_uri: process.env.REDIRECT_URI,
             }),
-            {
-                headers: {
+            {                headers: {
                     Authorization: `Basic ${credentials}`,
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
@@ -26,16 +26,17 @@ const callback = async (req, res) => {
         );
 
         accessToken = response.data.access_token;
+        refreshToken = response.data.refresh_token ;
 
         res.json({
-            message: "Login realizado com sucesso!",
-            accessToken,
+            message: "Login realizado com sucesso! Refresh Token:",
+            refreshToken,
         });
     } catch (err) {
-        console.log(err.response?.data);
-        res.status(500).json(err.response?.data);
+        console.log(err.response?.data ?? err.message);
+        res.status(500).json(err.response?.data ?? { error: err.message });
     }
 };
 
-export { accessToken };
+export { accessToken, refreshToken };
 export default callback;
