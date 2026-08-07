@@ -6,9 +6,9 @@ const url = "https://accounts.spotify.com/api/token";
 const refreshAcessToken = async (req, res) => {
     try {
         const body = new URLSearchParams({
+            client_id: process.env.CLIENT_ID,
             grant_type: 'refresh_token',
             refresh_token: refreshToken,
-            client_id: process.env.CLIENT_ID,
         });
 
         const result = await axios.post(url, body, {
