@@ -1,27 +1,46 @@
 import axios from "axios";
+import { configDotenv } from "dotenv";
 
-const refreshToken = "BQASYKC-g007PLMMoGqZmkJFfJl88WCSTYjHNygirE0vMWcDqUsPQ81IlADYJsdHyPVI1nPR9J3nJso6Jk1-KfCyMatc354UVoHGgPMSUH71_mjtDrVGjFQkX8JpGm4beEtKTQpfaL3td7DaSO3rcQ_55XlJ6oeKPmVto5n7kRzgyNViAVv5JyuaDuLDlWYa4xQ5E8vZvUaTTJFWgkq8ToCgJH3y2nSkX0xUHFSXKSdjXPe3jF4wZIYozHrW1kXT";
+configDotenv()
+
+const refreshToken = process.env.REFRESH_TOKEN
 const url = "https://accounts.spotify.com/api/token";
+let acessToken = ""
 
+// Função interna: renova o token e atualiza a variável acessToken.
+// Retorna o novo access_token para quem chamar.
+const refreshAcessTokenInternal = async () => {
+    const credentials = Buffer.from(
+        `${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`
+    ).toString("base64");
+
+    const body = new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+    });
+
+    const result = await axios.post(url, body, {
+        headers: {
+            Authorization: `Basic ${credentials}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+    });
+
+    acessToken = result.data.access_token;
+
+    return result.data;
+};
+
+// Handler do Express, mantém o comportamento da rota
 const refreshAcessToken = async (req, res) => {
     try {
-        const body = new URLSearchParams({
-            client_id: process.env.CLIENT_ID,
-            grant_type: 'refresh_token',
-            refresh_token: refreshToken,
-        });
-
-        const result = await axios.post(url, body, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        });
-
-        const response = await result.json();
-        res.send(response.data)
+        const data = await refreshAcessTokenInternal();
+        res.send(data);
     } catch (error) {
-        res.send(error)
+        console.log(error.response?.data ?? error.message);
+        res.status(error.response?.status ?? 500).json(error.response?.data ?? { error: error.message });
     }
-}
+};
 
+export { acessToken, refreshAcessTokenInternal }
 export default refreshAcessToken;

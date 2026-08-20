@@ -1,18 +1,113 @@
 import axios from "axios";
-import { accessToken } from "./callback.js";
+import { acessToken, refreshAcessTokenInternal } from "./refresh_token.js";
+import sharp from "sharp"
+import { configDotenv } from "dotenv";
 
-const get_music_info = async (req, res) => {
+configDotenv()
+
+const process_blurry_album_cover = async (imageBuffer) => {
+    const processedImage = await sharp(imageBuffer)
+        .resize(60, 80)
+        .blur(10)
+        .modulate({ brightness: 0.7 }) 
+        .png()
+        .toBuffer();
+
+    return processedImage;
+};
+
+const process_album_cover = async (imageBuffer) => {
+    const size = 220;
+
+    const circleMask = Buffer.from(
+        `<svg width="${size}" height="${size}">
+     <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="#fff"/>
+   </svg>`
+    );
+
+    const processedImage = await sharp(imageBuffer)
+        .resize(size, size)
+        .composite([{ input: circleMask, blend: 'dest-in' }]) 
+        .png()                                               
+        .toBuffer();
+
+    return processedImage;
+};
+
+const fetch_currently_playing = async () => {
     try {
-        const response = await axios.get(
+        return await axios.get(
             "https://api.spotify.com/v1/me/player/currently-playing",
             {
                 headers: {
-                    Authorization: `Bearer ${accessToken}`,
+                    Authorization: `Bearer ${acessToken}`,
                 },
             }
         );
+    } catch (err) {
+        if (err.response?.status !== 401) throw err;
 
-        res.json(response.data);
+        const { access_token } = await refreshAcessTokenInternal();
+
+        return await axios.get(
+            "https://api.spotify.com/v1/me/player/currently-playing",
+            {
+                headers: {
+                    Authorization: `Bearer ${access_token}`,
+                },
+            }
+        );
+    }
+};
+
+const get_music_info = async (req, res) => {
+    //Capa da Musica, Nome Musica, Artista, Duração da musica, Progresso do Player, Estado do Player
+    let album_cover_URL = "", music_name = "", artists = [], player_progress_ms = 0, music_duration_ms = 0, album_cover = "", music_id = "", blurry_album_cover = ""
+
+    try {
+        const response = await fetch_currently_playing();
+
+        if (response.status === 204 || !response.data?.item)
+            return res.status(204).send();
+        
+
+        music_id = response.data.item.id
+        album_cover_URL = response.data.item.album.images[0].url
+        music_name = response.data.item.name
+        artists = response.data.item.artists.map(artists => artists.name)
+        player_progress_ms = response.data.progress_ms
+        music_duration_ms = response.data.item.duration_ms
+
+        if (album_cover_URL) {
+
+            const imageResponse = await axios.get(
+                album_cover_URL,
+                {
+                    responseType: "arraybuffer"
+                }
+            );
+
+            const processedImage = await process_album_cover(
+                imageResponse.data
+            );
+
+            const processedBlurryImage = await process_blurry_album_cover(imageResponse.data)
+
+            blurry_album_cover = processedBlurryImage.toString("base64")
+            album_cover = processedImage.toString("base64");
+        }
+
+
+        res.status(200).json({
+            music_id,
+            music_name,
+            artists,
+            player_progress_ms,
+            music_duration_ms,
+            album_cover,
+            blurry_album_cover
+        });
+
     } catch (err) {
         console.log(err.response?.data);
 
@@ -21,3 +116,4 @@ const get_music_info = async (req, res) => {
 };
 
 export default get_music_info;
+
