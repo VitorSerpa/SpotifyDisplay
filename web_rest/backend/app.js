@@ -5,6 +5,8 @@ import get_music_info from "./controllers/get_music_info.js";
 import callback from "./controllers/callback.js";
 import refreshAcessToken from "./controllers/refresh_token.js";
 
+const HOST = "0.0.0.0"
+const PORT = 3000
 const app = express();
 
 app.use(cors());
@@ -17,6 +19,6 @@ app.get("/refresh_token", refreshAcessToken);
 app.get("/callback", callback);
 app.get("/get_music_info", get_music_info);
 
-app.listen(3000, "127.0.0.1", () => {
-    console.log("Servidor rodando em http://127.0.0.1:3000/");
+app.listen(PORT, HOST, () => {
+    console.log(`Servidor rodando em http://${HOST}:${PORT}`);
 });
