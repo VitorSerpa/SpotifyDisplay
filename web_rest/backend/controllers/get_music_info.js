@@ -10,7 +10,7 @@ const process_blurry_album_cover = async (imageBuffer) => {
         .resize(60, 80)
         .blur(10)
         .modulate({ brightness: 0.7 }) 
-        .jpeg({ quality: 80 }) 
+        .jpeg({ quality: 90 }) 
         .toBuffer();
 
     return processedImage;
@@ -20,7 +20,7 @@ const process_album_cover = async (imageBuffer) => {
     const size = 200;
     return await sharp(imageBuffer)
         .resize(size, size)
-        .jpeg({ quality: 80 })
+        .jpeg({ quality: 90 })
         .toBuffer();
 };
 
