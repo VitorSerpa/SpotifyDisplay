@@ -10,7 +10,7 @@ const process_blurry_album_cover = async (imageBuffer) => {
         .resize(60, 80)
         .blur(10)
         .modulate({ brightness: 0.7 }) 
-        .png()
+        .jpeg({ quality: 80 }) 
         .toBuffer();
 
     return processedImage;
