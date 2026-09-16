@@ -17,22 +17,13 @@ const process_blurry_album_cover = async (imageBuffer) => {
 };
 
 const process_album_cover = async (imageBuffer) => {
-    const size = 220;
-
-    const circleMask = Buffer.from(
-        `<svg width="${size}" height="${size}">
-     <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="#fff"/>
-   </svg>`
-    );
-
-    const processedImage = await sharp(imageBuffer)
+    const size = 200;
+    return await sharp(imageBuffer)
         .resize(size, size)
-        .composite([{ input: circleMask, blend: 'dest-in' }]) 
-        .png()                                               
+        .jpeg({ quality: 80 })
         .toBuffer();
-
-    return processedImage;
 };
+
 
 const fetch_currently_playing = async () => {
     try {
