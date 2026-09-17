@@ -8,7 +8,8 @@ configDotenv()
 const process_blurry_album_cover = async (imageBuffer) => {
     const processedImage = await sharp(imageBuffer)
         .resize(60, 80)
-        .blur(5)
+        .blur(10)
+        .modulate({ brightness: 0.7 }) 
         .jpeg({ quality: 90 }) 
         .toBuffer();
 
