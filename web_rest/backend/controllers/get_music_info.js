@@ -5,6 +5,36 @@ import { configDotenv } from "dotenv";
 
 configDotenv()
 
+const sharp = require('sharp');
+
+const SIZE = 200;
+const R = SIZE / 2;
+
+const R_HOLE = Math.round(R * 0.125);  // furo central
+const R_HUB  = Math.round(R * 0.30);   // anel de encaixe
+const R_DATA = Math.round(R * 0.38);   // onde a arte começa
+
+const BG  = '#000000';                 // mesma cor do fundo da tela
+const HUB = '#9a9a9a';
+
+const circlePath = (cx, cy, r) =>
+  `M${cx - r},${cy} a${r},${r} 0 1,0 ${2 * r},0 a${r},${r} 0 1,0 ${-2 * r},0`;
+
+const CD_OVERLAY = Buffer.from(`
+<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}">
+  <path fill="${BG}" fill-rule="evenodd"
+        d="M0,0 H${SIZE} V${SIZE} H0 Z ${circlePath(R, R, R)}"/>
+
+  <circle cx="${R}" cy="${R}" r="${R_HUB}"  fill="${HUB}"/>
+  <circle cx="${R}" cy="${R}" r="${R_HOLE}" fill="${BG}"/>
+
+  <circle cx="${R}" cy="${R}" r="${R_HUB}"  fill="none"
+          stroke="#ffffff" stroke-opacity="0.30" stroke-width="1"/>
+  <circle cx="${R}" cy="${R}" r="${R_DATA}" fill="none"
+          stroke="#ffffff" stroke-opacity="0.22" stroke-width="1"/>
+</svg>`);
+
+
 const process_blurry_album_cover = async (imageBuffer) => {
     const processedImage = await sharp(imageBuffer)
         .resize(60, 80)
@@ -17,11 +47,11 @@ const process_blurry_album_cover = async (imageBuffer) => {
 };
 
 const process_album_cover = async (imageBuffer) => {
-    const size = 200;
-    return await sharp(imageBuffer)
-        .resize(size, size)
-        .jpeg({ quality: 85 })
-        .toBuffer();
+  return await sharp(imageBuffer)
+    .resize(SIZE, SIZE, { fit: 'cover' })
+    .composite([{ input: CD_OVERLAY, top: 0, left: 0 }])
+    .jpeg({ quality: 85, chromaSubsampling: '4:4:4' })
+    .toBuffer();
 };
 
 
