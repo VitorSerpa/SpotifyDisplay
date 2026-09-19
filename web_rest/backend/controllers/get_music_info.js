@@ -5,16 +5,14 @@ import { configDotenv } from "dotenv";
 
 configDotenv()
 
-const sharp = require('sharp');
-
 const SIZE = 200;
 const R = SIZE / 2;
 
-const R_HOLE = Math.round(R * 0.125);  // furo central
-const R_HUB  = Math.round(R * 0.30);   // anel de encaixe
-const R_DATA = Math.round(R * 0.38);   // onde a arte começa
+const R_HOLE = Math.round(R * 0.125);  
+const R_HUB  = Math.round(R * 0.30);   
+const R_DATA = Math.round(R * 0.38);   
 
-const BG  = '#000000';                 // mesma cor do fundo da tela
+const BG  = '#000000';                 
 const HUB = '#9a9a9a';
 
 const circlePath = (cx, cy, r) =>
