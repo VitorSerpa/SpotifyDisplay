@@ -9,29 +9,36 @@ const SIZE = 200;
 const R = SIZE / 2;
 
 const R_HOLE = Math.round(R * 0.125);  
-const R_HUB  = Math.round(R * 0.30);   
-const R_DATA = Math.round(R * 0.38);   
+const R_HUB  = Math.round(R * 0.30);
+const R_DATA = Math.round(R * 0.38);
 
-const BG  = '#000000';                 
-const HUB = '#9a9a9a';
+const BG = '#000000';                  
 
 const circlePath = (cx, cy, r) =>
   `M${cx - r},${cy} a${r},${r} 0 1,0 ${2 * r},0 a${r},${r} 0 1,0 ${-2 * r},0`;
 
 const CD_OVERLAY = Buffer.from(`
 <svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}">
+  <defs>
+    <linearGradient id="vidro" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.30"/>
+      <stop offset="45%"  stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.26"/>
+    </linearGradient>
+  </defs>
+
   <path fill="${BG}" fill-rule="evenodd"
         d="M0,0 H${SIZE} V${SIZE} H0 Z ${circlePath(R, R, R)}"/>
 
-  <circle cx="${R}" cy="${R}" r="${R_HUB}"  fill="${HUB}"/>
-  <circle cx="${R}" cy="${R}" r="${R_HOLE}" fill="${BG}"/>
+  <circle cx="${R}" cy="${R}" r="${R_HUB}" fill="url(#vidro)"/>
 
   <circle cx="${R}" cy="${R}" r="${R_HUB}"  fill="none"
-          stroke="#ffffff" stroke-opacity="0.30" stroke-width="1"/>
+          stroke="#ffffff" stroke-opacity="0.40" stroke-width="1"/>
+  <circle cx="${R}" cy="${R}" r="${R_HOLE}" fill="none"
+          stroke="#ffffff" stroke-opacity="0.35" stroke-width="1"/>
   <circle cx="${R}" cy="${R}" r="${R_DATA}" fill="none"
-          stroke="#ffffff" stroke-opacity="0.22" stroke-width="1"/>
+          stroke="#ffffff" stroke-opacity="0.15" stroke-width="1"/>
 </svg>`);
-
 
 const process_blurry_album_cover = async (imageBuffer) => {
     const processedImage = await sharp(imageBuffer)
